@@ -1,5 +1,5 @@
 // server/controllers/milestonesController.js
-const prisma = require("../database/db");
+const milestonesService = require("../services/milestonesService");
 
 /**
  * Get all milestones for the logged-in user
@@ -7,12 +7,7 @@ const prisma = require("../database/db");
 exports.getAllMilestones = async (req, res, next) => {
   try {
     const userId = req.user.id;
-
-    const milestones = await prisma.milestone.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    });
-
+    const milestones = await milestonesService.getAllMilestones(userId);
     res.json(milestones);
   } catch (err) {
     next(err);
@@ -27,10 +22,7 @@ exports.getMilestoneById = async (req, res, next) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    const milestone = await prisma.milestone.findFirst({
-      where: { id, userId },
-    });
-
+    const milestone = await milestonesService.getMilestoneById(userId, id);
     if (!milestone) {
       return res.status(404).json({ error: "Milestone not found" });
     }
@@ -47,20 +39,7 @@ exports.getMilestoneById = async (req, res, next) => {
 exports.createMilestone = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { type, title, description, iconKey, status, completedAt } = req.body;
-
-    const milestone = await prisma.milestone.create({
-      data: {
-        userId,
-        type,
-        title,
-        description,
-        iconKey,
-        status: status || "PLANNED",
-        completedAt: completedAt ? new Date(completedAt) : null,
-      },
-    });
-
+    const milestone = await milestonesService.createMilestone(userId, req.body);
     res.status(201).json(milestone);
   } catch (err) {
     if (err.code === "P2002") {
@@ -78,26 +57,11 @@ exports.updateMilestone = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { id } = req.params;
-    const { title, description, iconKey, status, completedAt } = req.body;
 
-    const milestone = await prisma.milestone.findFirst({
-      where: { id, userId },
-    });
-
-    if (!milestone) {
+    const updated = await milestonesService.updateMilestone(userId, id, req.body);
+    if (!updated) {
       return res.status(404).json({ error: "Milestone not found" });
     }
-
-    const updated = await prisma.milestone.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        iconKey,
-        status,
-        completedAt: completedAt ? new Date(completedAt) : null,
-      },
-    });
 
     res.json(updated);
   } catch (err) {
@@ -113,15 +77,10 @@ exports.deleteMilestone = async (req, res, next) => {
     const userId = req.user.id;
     const { id } = req.params;
 
-    const milestone = await prisma.milestone.findFirst({
-      where: { id, userId },
-    });
-
-    if (!milestone) {
+    const deleted = await milestonesService.deleteMilestone(userId, id);
+    if (!deleted) {
       return res.status(404).json({ error: "Milestone not found" });
     }
-
-    await prisma.milestone.delete({ where: { id } });
 
     res.json({ message: "Milestone deleted successfully" });
   } catch (err) {
