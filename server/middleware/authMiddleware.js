@@ -11,13 +11,19 @@ if (!JWT_SECRET) {
  * Middleware: Verify JWT token
  */
 function requireAuth(req, res, next) {
-  const header = req.headers.authorization;
+  let token;
 
-  if (!header || !header.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Authorization header missing" });
+  // Support header and cookie token
+  const header = req.headers.authorization;
+  if (header && header.startsWith("Bearer ")) {
+    token = header.split(" ")[1];
+  } else if (req.cookies?.token) {
+    token = req.cookies.token;
   }
 
-  const token = header.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -29,4 +35,4 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = { requireAuth, JWT_SECRET };
+module.exports = requireAuth;
