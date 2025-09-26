@@ -24,6 +24,7 @@ model User {
 
   prayers    FavoritePrayer[]
   saints     FavoriteSaint[]
+  ourLadies  FavoriteOurLady[] // NEW
   journal    JournalEntry[]
   milestones Milestone[]
   goals      Goal[]
@@ -92,6 +93,39 @@ model SaintLocale {
   saint Saint @relation(fields: [saintId], references: [id])
 }
 
+// NEW: Our Lady apparitions
+model OurLady {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  feastDate DateTime?
+  location  String?       // e.g., Guadalupe, Fatima
+  title     String?       // e.g., Our Lady of Fatima
+  apparitionsJson Json?   // structured apparition events
+  sourceAttr String?
+
+  locales OurLadyLocale[]
+}
+
+model OurLadyLocale {
+  id       String @id @default(cuid())
+  ourLadyId String
+  locale   String
+  name     String
+  biographyHtml String
+
+  ourLady OurLady @relation(fields: [ourLadyId], references: [id])
+}
+
+model FavoriteOurLady {
+  id        String   @id @default(cuid())
+  userId    String
+  ourLadyId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  ourLady OurLady @relation(fields: [ourLadyId], references: [id])
+}
+
 model JournalEntry {
   id          String   @id @default(cuid())
   userId      String
@@ -124,7 +158,7 @@ model Goal {
   description String?
   type        String   // generic | template
   templateId  String?
-  status      String   @default("in_progress") // added to match routes
+  status      String   @default("in_progress")
   createdAt   DateTime @default(now())
 
   days GoalDay[]
@@ -142,11 +176,11 @@ model GoalDay {
   goal Goal @relation(fields: [goalId], references: [id])
 }
 
-// NEW: Unified favorites for guides and parishes
+// Unified favorites for guides and parishes
 model Favorite {
   id         String   @id @default(cuid())
   userId     String
-  entityType String   // prayer | saint | guide | parish
+  entityType String   // prayer | saint | guide | parish | ourlady
   entityId   String
   createdAt  DateTime @default(now())
 
