@@ -1,7 +1,7 @@
 // server/routes/parishes.js
 const express = require("express");
 const prisma = require("../database/db");
-const authMiddleware = require("../middleware/authMiddleware");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
     let where = {};
 
     if (lat && lng) {
-      // Later you can add proper geo distance filtering with PostGIS
+      // TODO: Add PostGIS geo distance filtering later
       where = { country: country || undefined };
     } else if (city || postal) {
       where = {
@@ -64,7 +64,7 @@ router.get("/:id", async (req, res) => {
  * POST /api/parishes/:id/save
  * Save parish to profile
  */
-router.post("/:id/save", authMiddleware, async (req, res) => {
+router.post("/:id/save", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -96,7 +96,7 @@ router.post("/:id/save", authMiddleware, async (req, res) => {
  * DELETE /api/parishes/:id/remove
  * Remove parish from profile
  */
-router.delete("/:id/remove", authMiddleware, async (req, res) => {
+router.delete("/:id/remove", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
