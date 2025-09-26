@@ -1,7 +1,11 @@
 // server/middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "super_secret_jwt_key";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 /**
  * Middleware: Verify JWT token
@@ -20,7 +24,7 @@ function requireAuth(req, res, next) {
     req.user = { id: decoded.id, email: decoded.email };
     return next();
   } catch (err) {
-    console.error("JWT verification failed:", err);
+    console.error("JWT verification failed:", err.message);
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 }
