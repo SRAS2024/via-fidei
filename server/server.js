@@ -14,7 +14,7 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || true, // restrict to frontend URL in production
+    origin: process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : true,
     credentials: true,
   })
 );
@@ -28,20 +28,26 @@ app.use(cookieParser());
 const authRoutes = require("./routes/auth");
 const prayerRoutes = require("./routes/prayers");
 const saintRoutes = require("./routes/saints");
-const ourLadyRoutes = require("./routes/ourladies"); // NEW
+const ourLadyRoutes = require("./routes/ourladies");
 const guideRoutes = require("./routes/guides");
 const parishRoutes = require("./routes/parishes");
 const profileRoutes = require("./routes/profile");
 const searchRoutes = require("./routes/search");
+const milestoneRoutes = require("./routes/milestones");
+const goalRoutes = require("./routes/goals");
+const journalRoutes = require("./routes/journal");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/prayers", prayerRoutes);
 app.use("/api/saints", saintRoutes);
-app.use("/api/ourladies", ourLadyRoutes); // NEW
+app.use("/api/ourladies", ourLadyRoutes);
 app.use("/api/guides", guideRoutes);
 app.use("/api/parishes", parishRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/milestones", milestoneRoutes);
+app.use("/api/goals", goalRoutes);
+app.use("/api/journal", journalRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -54,10 +60,8 @@ app.use((req, res, next) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ error: "Something went wrong" });
-});
+const errorHandler = require("./middleware/errorHandler");
+app.use(errorHandler);
 
 // Server listen
 const PORT = process.env.PORT || 5000;
