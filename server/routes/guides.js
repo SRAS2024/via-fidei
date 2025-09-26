@@ -1,7 +1,7 @@
 // server/routes/guides.js
 const express = require("express");
 const prisma = require("../database/db");
-const authMiddleware = require("../middleware/authMiddleware");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -41,7 +41,7 @@ router.get("/:slug", async (req, res) => {
  * POST /api/guides/:id/save
  * Save a guide to user profile as a favorite
  */
-router.post("/:id/save", authMiddleware, async (req, res) => {
+router.post("/:id/save", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -73,7 +73,7 @@ router.post("/:id/save", authMiddleware, async (req, res) => {
  * POST /api/guides/:id/add-goal
  * Turn a guide into a structured goal with daily checklist
  */
-router.post("/:id/add-goal", authMiddleware, async (req, res) => {
+router.post("/:id/add-goal", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -95,10 +95,11 @@ router.post("/:id/add-goal", authMiddleware, async (req, res) => {
         description: "Checklist created from guide",
         type: "template",
         templateId: guide.id,
+        status: "in_progress",
         days: {
           create: guide.steps.map((step, i) => ({
             dayNumber: i + 1,
-            checklistJson: JSON.stringify(step.checklistJson || []),
+            checklistJson: step.checklistJson || [],
           })),
         },
       },
