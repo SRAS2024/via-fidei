@@ -2,23 +2,26 @@
 const nodemailer = require("nodemailer");
 
 async function sendResetEmail(toEmail, resetLink) {
+  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !process.env.EMAIL_PASS || !process.env.EMAIL_FROM) {
+    throw new Error("Missing required email environment variables");
+  }
+
   try {
-    // Transporter setup - use environment variables for security
     const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,       // e.g., "smtp.sendgrid.net"
+      host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT || 587,
-      secure: false,                      // true if using port 465
+      secure: process.env.EMAIL_PORT == 465, // use TLS if port 465
       auth: {
-        user: process.env.EMAIL_USER,     // API key or SMTP username
-        pass: process.env.EMAIL_PASS,     // API secret or SMTP password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Email content
     const mailOptions = {
       from: `"Via Fidei Support" <${process.env.EMAIL_FROM}>`,
       to: toEmail,
       subject: "Password Reset - Via Fidei",
+      text: `You requested to reset your password. Use this link within 1 hour: ${resetLink}`,
       html: `
         <div style="font-family: Arial, sans-serif; color: #333;">
           <h2>Password Reset Request</h2>
@@ -30,9 +33,7 @@ async function sendResetEmail(toEmail, resetLink) {
       `,
     };
 
-    // Send email
     await transporter.sendMail(mailOptions);
-
     console.log(`Password reset email sent to ${toEmail}`);
     return true;
   } catch (err) {
