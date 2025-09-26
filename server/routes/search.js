@@ -36,7 +36,7 @@ router.get("/", async (req, res) => {
         include: { locales: { where: { locale: locale || "en" } } },
         take: 10,
       });
-      results.push(...prayers.map(p => ({ type: "prayer", ...p })));
+      results.push(...prayers.map((p) => ({ type: "prayer", ...p })));
     }
 
     // --- Search Saints ---
@@ -56,7 +56,7 @@ router.get("/", async (req, res) => {
         include: { locales: { where: { locale: locale || "en" } } },
         take: 10,
       });
-      results.push(...saints.map(s => ({ type: "saint", ...s })));
+      results.push(...saints.map((s) => ({ type: "saint", ...s })));
     }
 
     // --- Search Guides ---
@@ -76,7 +76,7 @@ router.get("/", async (req, res) => {
         include: { locales: { where: { locale: locale || "en" } } },
         take: 10,
       });
-      results.push(...guides.map(g => ({ type: "guide", ...g })));
+      results.push(...guides.map((g) => ({ type: "guide", ...g })));
     }
 
     // --- Search Parishes ---
@@ -92,8 +92,16 @@ router.get("/", async (req, res) => {
         },
         take: 10,
       });
-      results.push(...parishes.map(p => ({ type: "parish", ...p })));
+      results.push(...parishes.map((p) => ({ type: "parish", ...p })));
     }
+
+    // Sort results by type then name/title if available (basic stability)
+    results.sort((a, b) => {
+      if (a.type !== b.type) return a.type.localeCompare(b.type);
+      const aTitle = a.locales?.[0]?.title || a.name || "";
+      const bTitle = b.locales?.[0]?.title || b.name || "";
+      return aTitle.localeCompare(bTitle);
+    });
 
     res.json({ count: results.length, results });
   } catch (err) {
