@@ -1,7 +1,7 @@
 // server/routes/saints.js
 const express = require("express");
 const prisma = require("../database/db");
-const authMiddleware = require("../middleware/authMiddleware");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -13,14 +13,32 @@ router.get("/", async (req, res) => {
   try {
     const { query, locale, feastMonth } = req.query;
 
+    let feastFilter = {};
+    if (feastMonth) {
+      // Parse year-month (e.g. "2025-10") or just month ("10")
+      const now = new Date();
+      const [yearStr, monthStr] = feastMonth.includes("-")
+        ? feastMonth.split("-")
+        : [now.getFullYear().toString(), feastMonth];
+
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10);
+
+      if (!isNaN(year) && !isNaN(month) && month >= 1 && month <= 12) {
+        const start = new Date(year, month - 1, 1);
+        const end = new Date(year, month, 0); // last day of the month
+        feastFilter = {
+          feastDate: {
+            gte: start,
+            lte: end,
+          },
+        };
+      }
+    }
+
     const saints = await prisma.saint.findMany({
       where: {
-        ...(feastMonth && {
-          feastDate: {
-            gte: new Date(`${feastMonth}-01`),
-            lt: new Date(`${feastMonth}-31`),
-          },
-        }),
+        ...feastFilter,
         ...(query && {
           locales: {
             some: {
@@ -80,7 +98,7 @@ router.get("/:slug", async (req, res) => {
  * POST /api/saints/:id/save
  * Save a saint to user profile
  */
-router.post("/:id/save", authMiddleware, async (req, res) => {
+router.post("/:id/save", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -108,7 +126,7 @@ router.post("/:id/save", authMiddleware, async (req, res) => {
  * DELETE /api/saints/:id/remove
  * Remove a saint from user profile
  */
-router.delete("/:id/remove", authMiddleware, async (req, res) => {
+router.delete("/:id/remove", requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
