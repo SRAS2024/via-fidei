@@ -12,7 +12,12 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({ origin: true, credentials: true }));
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || true, // can restrict to frontend URL later
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
@@ -28,7 +33,6 @@ const parishRoutes = require("./routes/parishes");
 const profileRoutes = require("./routes/profile");
 const searchRoutes = require("./routes/search");
 
-// Register routes with prefixes
 app.use("/api/auth", authRoutes);
 app.use("/api/prayers", prayerRoutes);
 app.use("/api/saints", saintRoutes);
@@ -42,10 +46,15 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Catch-all 404 for unrecognized routes
+app.use((req, res, next) => {
+  res.status(404).json({ error: "Route not found" });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
+  console.error("Unhandled error:", err);
+  res.status(500).json({ error: "Something went wrong" });
 });
 
 // Server listen
