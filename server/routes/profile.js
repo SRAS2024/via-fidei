@@ -76,6 +76,28 @@ router.get("/saints", requireAuth, async (req, res) => {
 });
 
 /**
+ * GET /api/profile/ourladies
+ */
+router.get("/ourladies", requireAuth, async (req, res) => {
+  try {
+    const ourLadies = await prisma.favoriteOurLady.findMany({
+      where: { userId: req.user.id },
+      include: {
+        ourLady: {
+          include: {
+            locales: { where: { locale: req.user.locale || "en" } },
+          },
+        },
+      },
+    });
+    res.json(ourLadies);
+  } catch (err) {
+    console.error("Error fetching profile our ladies:", err);
+    res.status(500).json({ error: "Failed to fetch Our Ladies" });
+  }
+});
+
+/**
  * Journal CRUD
  */
 router.get("/journal", requireAuth, async (req, res) => {
@@ -118,7 +140,7 @@ router.delete("/journal/:id", requireAuth, async (req, res) => {
 router.get("/milestones", requireAuth, async (req, res) => {
   const milestones = await prisma.milestone.findMany({
     where: { userId: req.user.id },
-    orderBy: { createdAt: "desc" }, // now safe, schema has createdAt
+    orderBy: { createdAt: "desc" },
   });
   res.json(milestones);
 });
@@ -171,7 +193,7 @@ router.post("/goals", requireAuth, async (req, res) => {
       title,
       description,
       type: "generic",
-      status: "in_progress", // matches new schema
+      status: "in_progress",
       days: {
         create: days.map((day, i) => ({
           dayNumber: i + 1,
