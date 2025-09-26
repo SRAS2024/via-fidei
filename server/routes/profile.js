@@ -1,7 +1,7 @@
 // server/routes/profile.js
 const express = require("express");
 const prisma = require("../database/db");
-const authMiddleware = require("../middleware/authMiddleware");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
  * GET /api/profile
  * Get current user's profile basics
  */
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/", requireAuth, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -33,9 +33,8 @@ router.get("/", authMiddleware, async (req, res) => {
 
 /**
  * GET /api/profile/prayers
- * List saved prayers
  */
-router.get("/prayers", authMiddleware, async (req, res) => {
+router.get("/prayers", requireAuth, async (req, res) => {
   try {
     const prayers = await prisma.favoritePrayer.findMany({
       where: { userId: req.user.id },
@@ -47,7 +46,6 @@ router.get("/prayers", authMiddleware, async (req, res) => {
         },
       },
     });
-
     res.json(prayers);
   } catch (err) {
     console.error("Error fetching profile prayers:", err);
@@ -57,9 +55,8 @@ router.get("/prayers", authMiddleware, async (req, res) => {
 
 /**
  * GET /api/profile/saints
- * List saved saints
  */
-router.get("/saints", authMiddleware, async (req, res) => {
+router.get("/saints", requireAuth, async (req, res) => {
   try {
     const saints = await prisma.favoriteSaint.findMany({
       where: { userId: req.user.id },
@@ -71,7 +68,6 @@ router.get("/saints", authMiddleware, async (req, res) => {
         },
       },
     });
-
     res.json(saints);
   } catch (err) {
     console.error("Error fetching profile saints:", err);
@@ -82,7 +78,7 @@ router.get("/saints", authMiddleware, async (req, res) => {
 /**
  * Journal CRUD
  */
-router.get("/journal", authMiddleware, async (req, res) => {
+router.get("/journal", requireAuth, async (req, res) => {
   const entries = await prisma.journalEntry.findMany({
     where: { userId: req.user.id },
     orderBy: { createdAt: "desc" },
@@ -90,7 +86,7 @@ router.get("/journal", authMiddleware, async (req, res) => {
   res.json(entries);
 });
 
-router.post("/journal", authMiddleware, async (req, res) => {
+router.post("/journal", requireAuth, async (req, res) => {
   const { title, body } = req.body;
   const entry = await prisma.journalEntry.create({
     data: {
@@ -102,7 +98,7 @@ router.post("/journal", authMiddleware, async (req, res) => {
   res.json(entry);
 });
 
-router.patch("/journal/:id", authMiddleware, async (req, res) => {
+router.patch("/journal/:id", requireAuth, async (req, res) => {
   const { title, body } = req.body;
   const entry = await prisma.journalEntry.update({
     where: { id: req.params.id },
@@ -111,7 +107,7 @@ router.patch("/journal/:id", authMiddleware, async (req, res) => {
   res.json(entry);
 });
 
-router.delete("/journal/:id", authMiddleware, async (req, res) => {
+router.delete("/journal/:id", requireAuth, async (req, res) => {
   await prisma.journalEntry.delete({ where: { id: req.params.id } });
   res.json({ success: true });
 });
@@ -119,15 +115,15 @@ router.delete("/journal/:id", authMiddleware, async (req, res) => {
 /**
  * Milestones
  */
-router.get("/milestones", authMiddleware, async (req, res) => {
+router.get("/milestones", requireAuth, async (req, res) => {
   const milestones = await prisma.milestone.findMany({
     where: { userId: req.user.id },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: "desc" }, // now safe, schema has createdAt
   });
   res.json(milestones);
 });
 
-router.post("/milestones", authMiddleware, async (req, res) => {
+router.post("/milestones", requireAuth, async (req, res) => {
   const { type, title, description, iconKey } = req.body;
   const milestone = await prisma.milestone.create({
     data: {
@@ -142,7 +138,7 @@ router.post("/milestones", authMiddleware, async (req, res) => {
   res.json(milestone);
 });
 
-router.patch("/milestones/:id", authMiddleware, async (req, res) => {
+router.patch("/milestones/:id", requireAuth, async (req, res) => {
   const { status, completedAt } = req.body;
   const milestone = await prisma.milestone.update({
     where: { id: req.params.id },
@@ -151,7 +147,7 @@ router.patch("/milestones/:id", authMiddleware, async (req, res) => {
   res.json(milestone);
 });
 
-router.delete("/milestones/:id", authMiddleware, async (req, res) => {
+router.delete("/milestones/:id", requireAuth, async (req, res) => {
   await prisma.milestone.delete({ where: { id: req.params.id } });
   res.json({ success: true });
 });
@@ -159,7 +155,7 @@ router.delete("/milestones/:id", authMiddleware, async (req, res) => {
 /**
  * Goals
  */
-router.get("/goals", authMiddleware, async (req, res) => {
+router.get("/goals", requireAuth, async (req, res) => {
   const goals = await prisma.goal.findMany({
     where: { userId: req.user.id },
     include: { days: true },
@@ -167,7 +163,7 @@ router.get("/goals", authMiddleware, async (req, res) => {
   res.json(goals);
 });
 
-router.post("/goals", authMiddleware, async (req, res) => {
+router.post("/goals", requireAuth, async (req, res) => {
   const { title, description, days } = req.body;
   const goal = await prisma.goal.create({
     data: {
@@ -175,10 +171,11 @@ router.post("/goals", authMiddleware, async (req, res) => {
       title,
       description,
       type: "generic",
+      status: "in_progress", // matches new schema
       days: {
         create: days.map((day, i) => ({
           dayNumber: i + 1,
-          checklistJson: JSON.stringify(day.checklist || []),
+          checklistJson: day.checklist || [],
         })),
       },
     },
@@ -187,7 +184,7 @@ router.post("/goals", authMiddleware, async (req, res) => {
   res.json(goal);
 });
 
-router.patch("/goals/:id", authMiddleware, async (req, res) => {
+router.patch("/goals/:id", requireAuth, async (req, res) => {
   const { title, description, status } = req.body;
   const goal = await prisma.goal.update({
     where: { id: req.params.id },
@@ -196,7 +193,7 @@ router.patch("/goals/:id", authMiddleware, async (req, res) => {
   res.json(goal);
 });
 
-router.post("/goals/:id/days/:dayNumber/toggle", authMiddleware, async (req, res) => {
+router.post("/goals/:id/days/:dayNumber/toggle", requireAuth, async (req, res) => {
   const { id, dayNumber } = req.params;
 
   const day = await prisma.goalDay.findFirst({
@@ -218,7 +215,7 @@ router.post("/goals/:id/days/:dayNumber/toggle", authMiddleware, async (req, res
   res.json(updated);
 });
 
-router.delete("/goals/:id", authMiddleware, async (req, res) => {
+router.delete("/goals/:id", requireAuth, async (req, res) => {
   await prisma.goal.delete({ where: { id: req.params.id } });
   res.json({ success: true });
 });
