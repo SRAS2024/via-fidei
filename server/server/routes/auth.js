@@ -4,8 +4,9 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { body, validationResult } = require("express-validator");
+const crypto = require("crypto");
 
-const db = require("../database/db"); // database client
+const db = require("../database/db"); // Prisma client
 const sendResetEmail = require("../middleware/sendResetEmail");
 
 // Helper: generate JWT
@@ -28,9 +29,17 @@ router.post(
   async (req, res) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
 
       const { email, password, displayName } = req.body;
+
+      const existing = await db.user.findUnique({ where: { email } });
+      if (existing) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const user = await db.user.create({
@@ -42,9 +51,12 @@ router.post(
       });
 
       const token = generateToken(user);
-      res.json({ token, user: { id: user.id, email: user.email, displayName: user.displayName } });
+      res.json({
+        token,
+        user: { id: user.id, email: user.email, displayName: user.displayName },
+      });
     } catch (err) {
-      console.error(err);
+      console.error("Error in register:", err);
       res.status(500).json({ error: "Registration failed" });
     }
   }
@@ -65,9 +77,12 @@ router.post(
       if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
       const token = generateToken(user);
-      res.json({ token, user: { id: user.id, email: user.email, displayName: user.displayName } });
+      res.json({
+        token,
+        user: { id: user.id, email: user.email, displayName: user.displayName },
+      });
     } catch (err) {
-      console.error(err);
+      console.error("Error in login:", err);
       res.status(500).json({ error: "Login failed" });
     }
   }
@@ -75,7 +90,7 @@ router.post(
 
 // @route   POST /api/auth/logout
 router.post("/logout", (req, res) => {
-  // Client deletes token, but we send success for consistency
+  // Client deletes token, server just returns success
   res.json({ message: "Logged out successfully" });
 });
 
@@ -86,14 +101,24 @@ router.post("/forgot", [body("email").isEmail()], async (req, res) => {
     const user = await db.user.findUnique({ where: { email } });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExp = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
+
+    // Save to DB
+    await db.user.update({
+      where: { id: user.id },
+      data: { resetToken, resetTokenExp },
+    });
+
+    // Create link
     const resetLink = `${process.env.SITE_URL}/reset-password?token=${resetToken}`;
 
     await sendResetEmail(email, resetLink);
 
     res.json({ message: "Password reset email sent" });
   } catch (err) {
-    console.error(err);
+    console.error("Error in forgot password:", err);
     res.status(500).json({ error: "Failed to send reset email" });
   }
 });
@@ -109,17 +134,28 @@ router.post(
     try {
       const { token, password } = req.body;
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await db.user.findFirst({
+        where: { resetToken: token, resetTokenExp: { gte: new Date() } },
+      });
+
+      if (!user) {
+        return res.status(400).json({ error: "Invalid or expired token" });
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
 
       await db.user.update({
-        where: { id: decoded.id },
-        data: { passwordHash: hashedPassword },
+        where: { id: user.id },
+        data: {
+          passwordHash: hashedPassword,
+          resetToken: null,
+          resetTokenExp: null,
+        },
       });
 
       res.json({ message: "Password reset successful" });
     } catch (err) {
-      console.error(err);
+      console.error("Error in reset password:", err);
       res.status(400).json({ error: "Invalid or expired token" });
     }
   }
