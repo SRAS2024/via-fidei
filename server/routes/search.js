@@ -6,7 +6,7 @@ const router = express.Router();
 
 /**
  * GET /api/search
- * Search across prayers, saints, guides, and parishes
+ * Search across prayers, saints, our ladies, guides, and parishes
  */
 router.get("/", async (req, res) => {
   try {
@@ -59,6 +59,26 @@ router.get("/", async (req, res) => {
       results.push(...saints.map((s) => ({ type: "saint", ...s })));
     }
 
+    // --- Search Our Ladies ---
+    if (!type || type === "ourlady") {
+      const ourLadies = await prisma.ourLady.findMany({
+        where: {
+          locales: {
+            some: {
+              OR: [
+                { name: { contains: searchTerm, mode: "insensitive" } },
+                { biographyHtml: { contains: searchTerm, mode: "insensitive" } },
+              ],
+              ...(locale && { locale }),
+            },
+          },
+        },
+        include: { locales: { where: { locale: locale || "en" } } },
+        take: 10,
+      });
+      results.push(...ourLadies.map((o) => ({ type: "ourlady", ...o })));
+    }
+
     // --- Search Guides ---
     if (!type || type === "guide") {
       const guides = await prisma.guide.findMany({
@@ -98,8 +118,8 @@ router.get("/", async (req, res) => {
     // Sort results by type then name/title if available (basic stability)
     results.sort((a, b) => {
       if (a.type !== b.type) return a.type.localeCompare(b.type);
-      const aTitle = a.locales?.[0]?.title || a.name || "";
-      const bTitle = b.locales?.[0]?.title || b.name || "";
+      const aTitle = a.locales?.[0]?.title || a.locales?.[0]?.name || a.name || "";
+      const bTitle = b.locales?.[0]?.title || b.locales?.[0]?.name || b.name || "";
       return aTitle.localeCompare(bTitle);
     });
 
