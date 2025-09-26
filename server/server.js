@@ -14,7 +14,7 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || true, // can restrict to frontend URL later
+    origin: process.env.CORS_ORIGIN || true, // restrict to frontend URL in production
     credentials: true,
   })
 );
@@ -28,6 +28,7 @@ app.use(cookieParser());
 const authRoutes = require("./routes/auth");
 const prayerRoutes = require("./routes/prayers");
 const saintRoutes = require("./routes/saints");
+const ourLadyRoutes = require("./routes/ourladies"); // NEW
 const guideRoutes = require("./routes/guides");
 const parishRoutes = require("./routes/parishes");
 const profileRoutes = require("./routes/profile");
@@ -36,6 +37,7 @@ const searchRoutes = require("./routes/search");
 app.use("/api/auth", authRoutes);
 app.use("/api/prayers", prayerRoutes);
 app.use("/api/saints", saintRoutes);
+app.use("/api/ourladies", ourLadyRoutes); // NEW
 app.use("/api/guides", guideRoutes);
 app.use("/api/parishes", parishRoutes);
 app.use("/api/profile", profileRoutes);
