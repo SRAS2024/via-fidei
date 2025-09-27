@@ -1,0 +1,54 @@
+{
+  "name": "Via Fidei",
+  "short_name": "Via Fidei",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#000000",
+  "description": "Via Fidei is a multilingual Catholic website focused on clarity, beauty, and depth. Explore prayers, guides, parishes, saints, Our Lady, a private journal, and unified search.",
+  "categories": ["education", "reference", "lifestyle"],
+  "icons": [
+    {
+      "src": "/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/images/screenshot-home-light.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Home, light theme"
+    },
+    {
+      "src": "/assets/images/screenshot-home-dark.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Home, dark theme"
+    }
+  ]
+}
