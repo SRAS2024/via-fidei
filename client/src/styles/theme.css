@@ -1,0 +1,213 @@
+/* client/src/styles/theme.css */
+
+/* Design tokens */
+:root {
+  /* Palette */
+  --vf-bg: #ffffff;
+  --vf-fg: #111111;
+  --vf-fg-muted: #666666;
+
+  /* Semantic colors */
+  --vf-blue: #2563eb;  /* save or continue */
+  --vf-red: #dc2626;   /* remove or delete */
+  --vf-gray: #6b7280;  /* cancel */
+
+  /* Surfaces and borders */
+  --vf-surface: color-mix(in oklab, var(--vf-bg) 96%, transparent);
+  --vf-border: color-mix(in oklab, var(--vf-fg) 14%, transparent);
+
+  /* Effects */
+  --vf-focus-ring: 0 0 0 3px color-mix(in oklab, var(--vf-blue) 22%, transparent);
+  --vf-shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.06);
+  --vf-shadow-md: 0 10px 20px rgba(0, 0, 0, 0.10);
+  --vf-shadow-lg: 0 18px 34px rgba(0, 0, 0, 0.16);
+
+  /* Radii and spacing */
+  --vf-radius-sm: 10px;
+  --vf-radius-md: 12px;
+  --vf-radius-lg: 16px;
+
+  /* Typography scale */
+  --vf-font-xs: 0.825rem;
+  --vf-font-sm: 0.9rem;
+  --vf-font-base: 1rem;
+  --vf-font-lg: 1.125rem;
+  --vf-font-xl: 1.375rem;
+  --vf-font-2xl: 1.75rem;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --vf-bg: #0a0a0a;
+  --vf-fg: #f5f5f5;
+  --vf-fg-muted: #9ca3af;
+
+  --vf-surface: color-mix(in oklab, var(--vf-bg) 96%, transparent);
+  --vf-border: color-mix(in oklab, var(--vf-fg) 16%, transparent);
+
+  --vf-shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.35);
+  --vf-shadow-md: 0 10px 20px rgba(0, 0, 0, 0.45);
+  --vf-shadow-lg: 0 18px 34px rgba(0, 0, 0, 0.55);
+}
+
+/* Base elements */
+body {
+  background: var(--vf-bg);
+  color: var(--vf-fg);
+}
+
+.card {
+  background: var(--vf-surface);
+  border-color: var(--vf-border);
+  border-radius: var(--vf-radius-lg);
+  box-shadow: var(--vf-shadow-sm);
+}
+
+/* Links and focus */
+a {
+  color: var(--vf-blue);
+}
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--vf-focus-ring);
+  border-color: var(--vf-blue);
+}
+
+/* Header and navigation */
+.vf-header {
+  background: color-mix(in oklab, var(--vf-bg) 86%, transparent);
+  border-bottom: 1px solid var(--vf-border);
+}
+.nav a {
+  border-radius: var(--vf-radius-sm);
+}
+.nav a[aria-current="page"] {
+  background: color-mix(in oklab, var(--vf-fg) 6%, transparent);
+  font-weight: 700;
+}
+
+/* Buttons */
+.btn {
+  border-radius: var(--vf-radius-md);
+  box-shadow: var(--vf-shadow-sm);
+}
+.btn-primary {
+  background: var(--vf-blue);
+  border-color: var(--vf-blue);
+  color: #ffffff;
+}
+.btn-danger {
+  background: var(--vf-red);
+  border-color: var(--vf-red);
+  color: #ffffff;
+}
+.btn-secondary {
+  background: var(--vf-gray);
+  border-color: var(--vf-gray);
+  color: #ffffff;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--vf-border);
+  color: var(--vf-fg);
+}
+
+/* Inputs */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+select,
+textarea {
+  background: var(--vf-bg);
+  border-color: var(--vf-border);
+  color: var(--vf-fg);
+  border-radius: var(--vf-radius-md);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  box-shadow: var(--vf-focus-ring);
+}
+
+/* Popups */
+.popup-card {
+  background: var(--vf-bg);
+  border-color: var(--vf-border);
+  border-radius: var(--vf-radius-lg);
+  box-shadow: var(--vf-shadow-lg);
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--vf-border);
+  background: color-mix(in oklab, var(--vf-bg) 92%, transparent);
+}
+
+/* Semantic text helpers */
+.text-blue { color: var(--vf-blue); }
+.text-red { color: var(--vf-red); }
+.text-gray { color: var(--vf-gray); }
+
+/* Semantic background helpers */
+.bg-blue { background: var(--vf-blue); color: #ffffff; }
+.bg-red { background: var(--vf-red); color: #ffffff; }
+.bg-gray { background: var(--vf-gray); color: #ffffff; }
+
+/* Elevation utilities */
+.shadow-sm { box-shadow: var(--vf-shadow-sm); }
+.shadow-md { box-shadow: var(--vf-shadow-md); }
+.shadow-lg { box-shadow: var(--vf-shadow-lg); }
+
+/* Icon color suggestions for sacraments and devotions */
+.icon-gold { color: #c79027; }     /* chalice and monstrance */
+.icon-marian { color: #1e40af; }   /* Marian blue */
+.icon-sacred-heart { color: #b91c1c; }
+.icon-joseph { color: #166534; }   /* deep green */
+.icon-angel { color: #8b5cf6; }    /* soft violet */
+
+/* Badges and pills */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: var(--vf-font-xs);
+  border: 1px solid var(--vf-border);
+  background: var(--vf-surface);
+  color: var(--vf-fg);
+}
+.badge-blue {
+  background: color-mix(in oklab, var(--vf-blue) 15%, var(--vf-bg));
+  border-color: color-mix(in oklab, var(--vf-blue) 40%, transparent);
+  color: var(--vf-fg);
+}
+.badge-red {
+  background: color-mix(in oklab, var(--vf-red) 15%, var(--vf-bg));
+  border-color: color-mix(in oklab, var(--vf-red) 40%, transparent);
+  color: var(--vf-fg);
+}
+
+/* Tables */
+.table th,
+.table td {
+  border-bottom: 1px solid var(--vf-border);
+}
+
+/* Print adjustments */
+@media print {
+  :root {
+    --vf-bg: #ffffff;
+    --vf-fg: #000000;
+    --vf-fg-muted: #333333;
+  }
+  a { color: #000000; text-decoration: none; }
+  .btn,
+  .icon-btn,
+  .popup-overlay,
+  .vf-header { display: none !important; }
+}
