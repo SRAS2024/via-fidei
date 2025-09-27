@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Via Fidei</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Via Fidei is a multilingual Catholic website focused on clarity, beauty, and depth. Explore prayers, guides, parishes, saints, Our Lady, a private journal, and unified search."
+    />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Icons -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png" />
+
+    <!-- Social -->
+    <meta property="og:title" content="Via Fidei" />
+    <meta
+      property="og:description"
+      content="Clarity, beauty, and depth. Prayers, guides, parishes, saints, Our Lady, a private journal, and unified search."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/assets/images/og-image.png" />
+    <meta property="og:url" content="https://viafidei.example.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Color scheme and rendering -->
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Fonts (system stack for speed and neutrality) -->
+    <style>
+      :root {
+        color-scheme: light dark;
+        --vf-bg: #ffffff;
+        --vf-fg: #111111;
+        --vf-fg-muted: #666666;
+        --vf-accent-blue: #2563eb;  /* save or continue */
+        --vf-accent-red: #dc2626;   /* remove or delete */
+        --vf-accent-gray: #6b7280;  /* cancel */
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --vf-bg: #0a0a0a;
+          --vf-fg: #f5f5f5;
+          --vf-fg-muted: #9ca3af;
+        }
+      }
+      html, body, #root {
+        height: 100%;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--vf-bg);
+        color: var(--vf-fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Minimal loading shell before React mounts */
+      .vf-shell {
+        display: grid;
+        place-items: center;
+        height: 100%;
+      }
+      .vf-card {
+        width: min(680px, 92vw);
+        border: 1px solid color-mix(in oklab, var(--vf-fg) 12%, transparent);
+        border-radius: 16px;
+        padding: 28px 24px;
+        background: color-mix(in oklab, var(--vf-bg) 96%, transparent);
+      }
+      .vf-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+      }
+      .vf-title {
+        margin: 0;
+        font-size: 1.375rem;
+        letter-spacing: 0.02em;
+      }
+      .vf-sub {
+        margin: 10px 0 0 0;
+        font-size: 0.95rem;
+        color: var(--vf-fg-muted);
+      }
+      .vf-loader {
+        margin-top: 18px;
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
+        border: 2px solid color-mix(in oklab, var(--vf-fg) 20%, transparent);
+        border-top-color: var(--vf-accent-blue);
+        animation: vf-spin 1s linear infinite;
+      }
+      @keyframes vf-spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* No-script language selector for accessibility and fallback */
+      noscript .vf-noscript {
+        margin-top: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      noscript select, noscript button {
+        font: inherit;
+        border-radius: 10px;
+        border: 1px solid color-mix(in oklab, var(--vf-fg) 14%, transparent);
+        background: var(--vf-bg);
+        color: var(--vf-fg);
+        padding: 8px 10px;
+      }
+      noscript button {
+        cursor: pointer;
+        border-color: var(--vf-accent-blue);
+      }
+      .vf-logo {
+        width: 28px;
+        height: 28px;
+        display: inline-block;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>
+      <div class="vf-shell" role="region" aria-label="Via Fidei loading">
+        <div class="vf-card" aria-live="polite">
+          <div class="vf-center">
+            <svg class="vf-logo" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+              <path d="M12 4v16M7 9h10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg>
+            <h1 class="vf-title">Via Fidei</h1>
+          </div>
+          <p class="vf-sub">
+            JavaScript is required. Enable it to load the app. You can still choose a language:
+          </p>
+          <div class="vf-noscript" aria-label="Language selection">
+            <label for="vf-lang" class="sr-only">Language</label>
+            <select id="vf-lang" name="language">
+              <option value="en" selected>English</option>
+              <option value="es">Español</option>
+              <option value="pt">Português</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="it">Italiano</option>
+              <option value="pl">Polski</option>
+            </select>
+            <button type="button" aria-label="Apply language">Apply</button>
+          </div>
+        </div>
+      </div>
+    </noscript>
+
+    <div id="root">
+      <!-- Pre-React loading shell -->
+      <div class="vf-shell" role="status" aria-live="polite">
+        <div class="vf-card">
+          <div class="vf-center" aria-label="Brand">
+            <svg class="vf-logo" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
+              <path d="M12 4v16M7 9h10" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg>
+            <h1 class="vf-title">Via Fidei</h1>
+          </div>
+          <p class="vf-sub">
+            Loading a clean, symmetrical interface. Black and white at the core, purposeful color for clarity.
+          </p>
+          <div class="vf-center" style="margin-top: 8px;">
+            <div class="vf-loader" aria-label="Loading"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CRA will inject bundles. If using Vite, replace with: <script type="module" src="/src/index.js"></script> -->
+  </body>
+</html>
