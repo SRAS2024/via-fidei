@@ -24,6 +24,11 @@ app.use(morgan("dev"));
 app.use(helmet());
 app.use(cookieParser());
 
+// Rate limiting
+const { apiLimiter, authLimiter } = require("./middleware/rateLimiter");
+app.use("/api/", apiLimiter);        // general limiter for all API routes
+app.use("/api/auth/", authLimiter);  // stricter limiter for auth endpoints
+
 // Routes
 const authRoutes = require("./routes/auth");
 const prayerRoutes = require("./routes/prayers");
