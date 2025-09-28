@@ -1,0 +1,30 @@
+{
+  "name": "via-fidei",
+  "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "npm-run-all -p dev:server dev:client",
+    "dev:server": "npm --workspace server run dev",
+    "dev:client": "npm --workspace client run start",
+    "build": "npm --workspace client run build",
+    "start": "npm --workspace server run start",
+    "migrate:deploy": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "seed": "node prisma/seed.js",
+    "prisma:studio": "prisma studio"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "prisma": "^5.18.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.18.0"
+  },
+  "engines": {
+    "node": ">=18.18"
+  }
+}
