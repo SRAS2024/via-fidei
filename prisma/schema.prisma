@@ -9,9 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/* =========================
-   Enums
-   ========================= */
+// Enums
 
 enum MilestoneType {
   SACRAMENT
@@ -37,9 +35,7 @@ enum GoalStatus {
   CANCELED
 }
 
-/* =========================
-   Core models
-   ========================= */
+// Core models
 
 model User {
   id              String   @id @default(cuid())
@@ -64,24 +60,22 @@ model User {
   goals         Goal[]
 }
 
-/* =========================
-   Prayers
-   ========================= */
+// Prayers
 
 model PrayerCategory {
-  id        String                 @id @default(cuid())
-  slug      String                 @unique
-  createdAt DateTime               @default(now())
-  updatedAt DateTime               @updatedAt
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  locales   PrayerCategoryLocale[]
-  prayers   Prayer[]
+  locales PrayerCategoryLocale[]
+  prayers Prayer[]
 
   @@index([slug])
 }
 
 model PrayerCategoryLocale {
-  id         String         @id @default(cuid())
+  id         String   @id @default(cuid())
   categoryId String
   locale     String
   name       String
@@ -89,6 +83,7 @@ model PrayerCategoryLocale {
   category PrayerCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([categoryId, locale])
+  @@index([locale])
 }
 
 model Prayer {
@@ -117,6 +112,7 @@ model PrayerLocale {
   prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
 
   @@unique([prayerId, locale])
+  @@index([locale])
 }
 
 model FavoritePrayer {
@@ -128,13 +124,11 @@ model FavoritePrayer {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, prayerId]) // prevent duplicates
+  @@unique([userId, prayerId])
   @@index([userId])
 }
 
-/* =========================
-   Saints
-   ========================= */
+// Saints
 
 model Saint {
   id                 String   @id @default(cuid())
@@ -143,8 +137,8 @@ model Saint {
   canonizationStatus String?
   patronagesJson     Json?
 
-  locales   SaintLocale[]
-  favedBy   FavoriteSaint[]
+  locales SaintLocale[]
+  favedBy FavoriteSaint[]
 
   @@index([slug])
 }
@@ -159,6 +153,7 @@ model SaintLocale {
   saint Saint @relation(fields: [saintId], references: [id], onDelete: Cascade)
 
   @@unique([saintId, locale])
+  @@index([locale])
 }
 
 model FavoriteSaint {
@@ -170,22 +165,20 @@ model FavoriteSaint {
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   saint Saint @relation(fields: [saintId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, saintId]) // prevent duplicates
+  @@unique([userId, saintId])
   @@index([userId])
 }
 
-/* =========================
-   Our Lady apparitions
-   ========================= */
+// Our Lady apparitions
 
 model OurLady {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  feastDate      DateTime?
-  location       String?
-  title          String?
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  feastDate       DateTime?
+  location        String?
+  title           String?
   apparitionsJson Json?
-  sourceAttr     String?
+  sourceAttr      String?
 
   locales OurLadyLocale[]
   favedBy FavoriteOurLady[]
@@ -194,15 +187,16 @@ model OurLady {
 }
 
 model OurLadyLocale {
-  id         String @id @default(cuid())
-  ourLadyId  String
-  locale     String
-  name       String
+  id            String @id @default(cuid())
+  ourLadyId     String
+  locale        String
+  name          String
   biographyHtml String
 
   ourLady OurLady @relation(fields: [ourLadyId], references: [id], onDelete: Cascade)
 
   @@unique([ourLadyId, locale])
+  @@index([locale])
 }
 
 model FavoriteOurLady {
@@ -214,13 +208,11 @@ model FavoriteOurLady {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   ourLady OurLady @relation(fields: [ourLadyId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, ourLadyId]) // prevent duplicates
+  @@unique([userId, ourLadyId])
   @@index([userId])
 }
 
-/* =========================
-   Journal
-   ========================= */
+// Journal
 
 model JournalEntry {
   id            String   @id @default(cuid())
@@ -237,9 +229,7 @@ model JournalEntry {
   @@index([userId, createdAt])
 }
 
-/* =========================
-   Milestones and Goals
-   ========================= */
+// Milestones and Goals
 
 model Milestone {
   id          String          @id @default(cuid())
@@ -254,7 +244,6 @@ model Milestone {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // prevent duplicate sacraments and consecrations for a user by title and type
   @@unique([userId, type, title])
   @@index([userId, type, status])
 }
@@ -292,9 +281,7 @@ model GoalDay {
   @@index([goalId])
 }
 
-/* =========================
-   Unified favorites
-   ========================= */
+// Unified favorites
 
 model Favorite {
   id         String   @id @default(cuid())
@@ -305,6 +292,84 @@ model Favorite {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, entityType, entityId]) // prevent duplicates
+  @@unique([userId, entityType, entityId])
   @@index([userId, entityType])
+}
+
+// Guides and steps
+
+model Guide {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  iconKey       String?
+  coverImageUrl String?
+  scheduleJson  Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  locales GuideLocale[]
+  steps   GuideStep[]
+}
+
+model GuideLocale {
+  id        String @id @default(cuid())
+  guideId   String
+  locale    String
+  title     String
+  introHtml String?
+
+  guide Guide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+
+  @@unique([guideId, locale])
+  @@index([locale])
+}
+
+model GuideStep {
+  id            String @id @default(cuid())
+  guideId       String
+  order         Int
+  slug          String?
+  checklistJson Json?
+
+  guide   Guide            @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  locales GuideStepLocale[]
+
+  @@unique([guideId, order])
+}
+
+model GuideStepLocale {
+  id          String @id @default(cuid())
+  guideStepId String
+  locale      String
+  title       String
+  bodyHtml    String?
+
+  step GuideStep @relation(fields: [guideStepId], references: [id], onDelete: Cascade)
+
+  @@unique([guideStepId, locale])
+  @@index([locale])
+}
+
+// Parishes
+
+model Parish {
+  id         String   @id @default(cuid())
+  name       String
+  address    String?
+  city       String?
+  region     String?
+  postalCode String?
+  country    String?
+  phone      String?
+  email      String?
+  website    String?
+  diocese    String?
+  ociaUrl    String?
+  hoursJson  Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([city])
+  @@index([region])
+  @@index([country])
 }
