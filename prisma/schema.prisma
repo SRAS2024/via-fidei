@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,348 +7,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums
-
-enum MilestoneType {
-  SACRAMENT
-  SPIRITUAL
-  PERSONAL
-}
-
-enum MilestoneStatus {
-  PLANNED
-  IN_PROGRESS
-  COMPLETED
-}
-
-enum GoalType {
-  GENERIC
-  TEMPLATE
-}
-
-enum GoalStatus {
-  IN_PROGRESS
-  COMPLETED
-  OVERDUE
-  CANCELED
-}
-
-// Core models
-
 model User {
-  id              String   @id @default(cuid())
-  email           String   @unique
-  emailVerifiedAt DateTime?
-  passwordHash    String
-  displayName     String
-  avatarUrl       String?
-  locale          String   @default("en")
-  theme           String   @default("light")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  resetToken      String?
-  resetTokenExp   DateTime?
-
-  prayers       FavoritePrayer[]
-  saints        FavoriteSaint[]
-  ourLadies     FavoriteOurLady[]
-  favorites     Favorite[]
-  journal       JournalEntry[]
-  milestones    Milestone[]
-  goals         Goal[]
-}
-
-// Prayers
-
-model PrayerCategory {
   id        String   @id @default(cuid())
-  slug      String   @unique
+  email     String   @unique
+  password  String
+  firstName String?
+  lastName  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  locales PrayerCategoryLocale[]
-  prayers Prayer[]
-
-  @@index([slug])
-}
-
-model PrayerCategoryLocale {
-  id         String   @id @default(cuid())
-  categoryId String
-  locale     String
-  name       String
-
-  category PrayerCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@unique([categoryId, locale])
-  @@index([locale])
+  prayers     FavoritePrayer[]
+  saints      FavoriteSaint[]
+  ourladies   FavoriteOurLady[]
+  journal     Journal[]
+  milestones  Milestone[]
+  goals       Goal[]
+  profilePic  String?
 }
 
 model Prayer {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  categoryId  String
-  audioUrl    String?
-  sourceAttr  String?
-
-  category PrayerCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  locales  PrayerLocale[]
-  favedBy  FavoritePrayer[]
-
-  @@index([slug])
-}
-
-model PrayerLocale {
-  id       String @id @default(cuid())
-  prayerId String
-  locale   String
-  title    String
-  bodyHtml String
-
-  prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
-
-  @@unique([prayerId, locale])
-  @@index([locale])
-}
-
-model FavoritePrayer {
   id        String   @id @default(cuid())
-  userId    String
-  prayerId  String
+  title     String
+  content   String
+  category  String
+  language  String
   createdAt DateTime @default(now())
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, prayerId])
-  @@index([userId])
+  favoritedBy FavoritePrayer[]
 }
-
-// Saints
 
 model Saint {
-  id                 String   @id @default(cuid())
-  slug               String   @unique
-  feastDate          DateTime?
-  canonizationStatus String?
-  patronagesJson     Json?
-
-  locales SaintLocale[]
-  favedBy FavoriteSaint[]
-
-  @@index([slug])
-}
-
-model SaintLocale {
-  id            String @id @default(cuid())
-  saintId       String
-  locale        String
-  name          String
-  biographyHtml String
-
-  saint Saint @relation(fields: [saintId], references: [id], onDelete: Cascade)
-
-  @@unique([saintId, locale])
-  @@index([locale])
-}
-
-model FavoriteSaint {
   id        String   @id @default(cuid())
-  userId    String
-  saintId   String
-  createdAt DateTime @default(now())
+  name      String
+  feastDate DateTime?
+  patronage String?
+  bio       String?
+  imageUrl  String?
 
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  saint Saint @relation(fields: [saintId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, saintId])
-  @@index([userId])
+  favoritedBy FavoriteSaint[]
 }
-
-// Our Lady apparitions
 
 model OurLady {
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  feastDate       DateTime?
-  location        String?
-  title           String?
-  apparitionsJson Json?
-  sourceAttr      String?
-
-  locales OurLadyLocale[]
-  favedBy FavoriteOurLady[]
-
-  @@index([slug])
-}
-
-model OurLadyLocale {
-  id            String @id @default(cuid())
-  ourLadyId     String
-  locale        String
-  name          String
-  biographyHtml String
-
-  ourLady OurLady @relation(fields: [ourLadyId], references: [id], onDelete: Cascade)
-
-  @@unique([ourLadyId, locale])
-  @@index([locale])
-}
-
-model FavoriteOurLady {
-  id        String   @id @default(cuid())
-  userId    String
-  ourLadyId String
-  createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  ourLady OurLady @relation(fields: [ourLadyId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, ourLadyId])
-  @@index([userId])
-}
-
-// Journal
-
-model JournalEntry {
-  id            String   @id @default(cuid())
-  userId        String
-  title         String
-  bodyMarkdown  String
-  isSaved       Boolean  @default(true)
-  isFavorite    Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-}
-
-// Milestones and Goals
-
-model Milestone {
-  id          String          @id @default(cuid())
-  userId      String
-  type        MilestoneType
+  id          String   @id @default(cuid())
   title       String
-  description String?
-  iconKey     String?
-  status      MilestoneStatus
-  completedAt DateTime?
-  createdAt   DateTime        @default(now())
+  location    String?
+  feastDate   DateTime?
+  apparition  String?
+  imageUrl    String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, type, title])
-  @@index([userId, type, status])
+  favoritedBy FavoriteOurLady[]
 }
-
-model Goal {
-  id          String      @id @default(cuid())
-  userId      String
-  title       String
-  description String?
-  type        GoalType    @default(GENERIC)
-  templateId  String?
-  status      GoalStatus  @default(IN_PROGRESS)
-  dueDate     DateTime?
-  completedAt DateTime?
-  createdAt   DateTime    @default(now())
-
-  days GoalDay[]
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, status])
-  @@index([dueDate])
-}
-
-model GoalDay {
-  id            String   @id @default(cuid())
-  goalId        String
-  dayNumber     Int
-  checklistJson Json
-  isCompleted   Boolean  @default(false)
-  completedAt   DateTime?
-
-  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
-
-  @@unique([goalId, dayNumber])
-  @@index([goalId])
-}
-
-// Unified favorites
-
-model Favorite {
-  id         String   @id @default(cuid())
-  userId     String
-  entityType String   // prayer, saint, guide, parish, ourlady
-  entityId   String
-  createdAt  DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, entityType, entityId])
-  @@index([userId, entityType])
-}
-
-// Guides and steps
 
 model Guide {
-  id            String   @id @default(cuid())
-  slug          String   @unique
-  iconKey       String?
-  coverImageUrl String?
-  scheduleJson  Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  locales GuideLocale[]
-  steps   GuideStep[]
-}
-
-model GuideLocale {
-  id        String @id @default(cuid())
-  guideId   String
-  locale    String
+  id        String   @id @default(cuid())
   title     String
-  introHtml String?
-
-  guide Guide @relation(fields: [guideId], references: [id], onDelete: Cascade)
-
-  @@unique([guideId, locale])
-  @@index([locale])
+  content   String
+  category  String
+  createdAt DateTime @default(now())
 }
-
-model GuideStep {
-  id            String @id @default(cuid())
-  guideId       String
-  order         Int
-  slug          String?
-  checklistJson Json?
-
-  guide   Guide            @relation(fields: [guideId], references: [id], onDelete: Cascade)
-  locales GuideStepLocale[]
-
-  @@unique([guideId, order])
-}
-
-model GuideStepLocale {
-  id          String @id @default(cuid())
-  guideStepId String
-  locale      String
-  title       String
-  bodyHtml    String?
-
-  step GuideStep @relation(fields: [guideStepId], references: [id], onDelete: Cascade)
-
-  @@unique([guideStepId, locale])
-  @@index([locale])
-}
-
-// Parishes
 
 model Parish {
   id         String   @id @default(cuid())
@@ -372,4 +86,99 @@ model Parish {
   @@index([city])
   @@index([region])
   @@index([country])
+}
+
+model Journal {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  favorite  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  userId      String
+  type        MilestoneType
+  title       String
+  description String?
+  iconKey     String?
+  status      MilestoneStatus @default(IN_PROGRESS)
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, title])
+  @@index([userId, type, status])
+}
+
+model Goal {
+  id          String     @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  status      GoalStatus @default(IN_PROGRESS)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model FavoritePrayer {
+  id       String @id @default(cuid())
+  userId   String
+  prayerId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, prayerId])
+}
+
+model FavoriteSaint {
+  id      String @id @default(cuid())
+  userId  String
+  saintId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  saint Saint @relation(fields: [saintId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, saintId])
+}
+
+model FavoriteOurLady {
+  id        String @id @default(cuid())
+  userId    String
+  ourLadyId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ourLady OurLady @relation(fields: [ourLadyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ourLadyId])
+}
+
+enum MilestoneType {
+  SACRAMENT
+  CONSECRATION
+  PERSONAL
+}
+
+enum MilestoneStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum GoalStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELED
 }
