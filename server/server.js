@@ -1,60 +1,103 @@
-const express = require("express");
+ express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// Import your route modules
-const authRoutes = require("./routes/auth");
-const prayersRoutes = require("./routes/prayers");
-const guidesRoutes = require("./routes/guides");
-const ourLadiesRoutes = require("./routes/ourladies");
-const saintsRoutes = require("./routes/saints");
-const parishesRoutes = require("./routes/parishes");
-const profileRoutes = require("./routes/profile");
-const milestonesRoutes = require("./routes/milestones");
-const goalsRoutes = require("./routes/goals");
-const journalRoutes = require("./routes/journal");
-const searchRoutes = require("./routes/search");
-
 const app = express();
 
-// Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*", credentials: true }));
+/**
+ * Basic middleware
+ */
+app.use(helmet());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "*",
+    credentials: true
+  })
+);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
 
-// API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/prayers", prayersRoutes);
-app.use("/api/guides", guidesRoutes);
-app.use("/api/ourladies", ourLadiesRoutes);
-app.use("/api/saints", saintsRoutes);
-app.use("/api/parishes", parishesRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/milestones", milestonesRoutes);
-app.use("/api/goals", goalsRoutes);
-app.use("/api/journal", journalRoutes);
-app.use("/api/search", searchRoutes);
+/**
+ * Health check
+ */
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
 
-// Serve React client build in production
+/**
+ * Helper to mount a route only if the file exists
+ */
+function mountIfExists(mountPoint, relPathFromServer) {
+  const base = path.join(__dirname, relPathFromServer);
+  const candidates = [`${base}.js`, path.join(base, "index.js")];
+  const exists = candidates.some(p => fs.existsSync(p));
+  if (exists) {
+    try {
+      // eslint-disable-next-line import/no-dynamic-require, global-require
+      const router = require(base);
+      app.use(mountPoint, router);
+      // Optional console to help diagnose missing routes during deploy
+      console.log(`[routes] Mounted ${mountPoint} from ${base}`);
+    } catch (e) {
+      console.error(`[routes] Failed to mount ${mountPoint} from ${base}`, e);
+    }
+  } else {
+    console.warn(
+      `[routes] Skipped ${mountPoint}. File not found at ${base}.js or ${base}/index.js`
+    );
+  }
+}
+
+/**
+ * API routes
+ * These will mount only if the corresponding files exist under server/routes
+ */
+mountIfExists("/api/auth", "./routes/auth");
+mountIfExists("/api/prayers", "./routes/prayers");
+mountIfExists("/api/guides", "./routes/guides");
+mountIfExists("/api/ourladies", "./routes/ourladies");
+mountIfExists("/api/saints", "./routes/saints");
+mountIfExists("/api/parishes", "./routes/parishes");
+mountIfExists("/api/profile", "./routes/profile");
+mountIfExists("/api/milestones", "./routes/milestones");
+mountIfExists("/api/goals", "./routes/goals");
+mountIfExists("/api/journal", "./routes/journal");
+mountIfExists("/api/search", "./routes/search");
+
+/**
+ * Serve React build in production
+ */
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "..", "client", "build");
   app.use(express.static(clientBuildPath));
 
-  app.get("*", (req, res) => {
+  app.get("*", (_req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 }
 
-// Fallback 404 for API only (not React routes)
-app.use("/api/*", (req, res) => {
+/**
+ * 404 handler for API
+ */
+app.use("/api/*", (_req, res) => {
   res.status(404).json({ error: "Not found" });
+});
+
+/**
+ * Error handler
+ */
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ error: "Internal server error" });
 });
 
 const PORT = process.env.PORT || 5000;
