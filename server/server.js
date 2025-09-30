@@ -1,75 +1,64 @@
-// server/server.js
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
-const dotenv = require("dotenv");
+const path = require("path");
+require("dotenv").config();
 
-// Load environment variables from .env
-dotenv.config();
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
+// Import your route modules
+const authRoutes = require("./routes/auth");
+const prayersRoutes = require("./routes/prayers");
+const guidesRoutes = require("./routes/guides");
+const ourLadiesRoutes = require("./routes/ourladies");
+const saintsRoutes = require("./routes/saints");
+const parishesRoutes = require("./routes/parishes");
+const profileRoutes = require("./routes/profile");
+const milestonesRoutes = require("./routes/milestones");
+const goalsRoutes = require("./routes/goals");
+const journalRoutes = require("./routes/journal");
+const searchRoutes = require("./routes/search");
 
 const app = express();
 
 // Middleware
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : true,
-    credentials: true,
-  })
-);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || "*", credentials: true }));
 app.use(morgan("dev"));
-app.use(helmet());
+app.use(express.json());
 app.use(cookieParser());
 
-// Rate limiting
-const { apiLimiter, authLimiter } = require("./middleware/rateLimiter");
-app.use("/api/", apiLimiter);        // general limiter for all API routes
-app.use("/api/auth/", authLimiter);  // stricter limiter for auth endpoints
-
-// Routes
-const authRoutes = require("./routes/auth");
-const prayerRoutes = require("./routes/prayers");
-const saintRoutes = require("./routes/saints");
-const ourLadyRoutes = require("./routes/ourladies");
-const guideRoutes = require("./routes/guides");
-const parishRoutes = require("./routes/parishes");
-const profileRoutes = require("./routes/profile");
-const searchRoutes = require("./routes/search");
-const milestoneRoutes = require("./routes/milestones");
-const goalRoutes = require("./routes/goals");
-const journalRoutes = require("./routes/journal");
-
+// API routes
 app.use("/api/auth", authRoutes);
-app.use("/api/prayers", prayerRoutes);
-app.use("/api/saints", saintRoutes);
-app.use("/api/ourladies", ourLadyRoutes);
-app.use("/api/guides", guideRoutes);
-app.use("/api/parishes", parishRoutes);
+app.use("/api/prayers", prayersRoutes);
+app.use("/api/guides", guidesRoutes);
+app.use("/api/ourladies", ourLadiesRoutes);
+app.use("/api/saints", saintsRoutes);
+app.use("/api/parishes", parishesRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/search", searchRoutes);
-app.use("/api/milestones", milestoneRoutes);
-app.use("/api/goals", goalRoutes);
+app.use("/api/milestones", milestonesRoutes);
+app.use("/api/goals", goalsRoutes);
 app.use("/api/journal", journalRoutes);
+app.use("/api/search", searchRoutes);
 
-// Health check
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+// Serve React client build in production
+if (process.env.NODE_ENV === "production") {
+  const clientBuildPath = path.join(__dirname, "..", "client", "build");
+  app.use(express.static(clientBuildPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(clientBuildPath, "index.html"));
+  });
+}
+
+// Fallback 404 for API only (not React routes)
+app.use("/api/*", (req, res) => {
+  res.status(404).json({ error: "Not found" });
 });
 
-// Catch-all 404 for unrecognized routes
-app.use((req, res, next) => {
-  res.status(404).json({ error: "Route not found" });
-});
-
-// Error handling middleware
-const errorHandler = require("./middleware/errorHandler");
-app.use(errorHandler);
-
-// Server listen
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
