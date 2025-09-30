@@ -1,11 +1,5 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
 
 model User {
   id        String   @id @default(cuid())
@@ -32,7 +26,6 @@ model Prayer {
   category  String
   language  String
   createdAt DateTime @default(now())
-
   favoritedBy FavoritePrayer[]
 }
 
@@ -43,18 +36,16 @@ model Saint {
   patronage String?
   bio       String?
   imageUrl  String?
-
   favoritedBy FavoriteSaint[]
 }
 
 model OurLady {
-  id          String   @id @default(cuid())
-  title       String
-  location    String?
-  feastDate   DateTime?
-  apparition  String?
-  imageUrl    String?
-
+  id        String   @id @default(cuid())
+  title     String
+  location  String?
+  feastDate DateTime?
+  apparition String?
+  imageUrl  String?
   favoritedBy FavoriteOurLady[]
 }
 
@@ -96,7 +87,6 @@ model Journal {
   favorite  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -110,9 +100,7 @@ model Milestone {
   status      MilestoneStatus @default(IN_PROGRESS)
   completedAt DateTime?
   createdAt   DateTime        @default(now())
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([userId, type, title])
   @@index([userId, type, status])
 }
@@ -125,9 +113,7 @@ model Goal {
   status      GoalStatus @default(IN_PROGRESS)
   dueDate     DateTime?
   createdAt   DateTime   @default(now())
-
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([userId, status])
 }
 
@@ -135,10 +121,8 @@ model FavoritePrayer {
   id       String @id @default(cuid())
   userId   String
   prayerId String
-
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   prayer Prayer @relation(fields: [prayerId], references: [id], onDelete: Cascade)
-
   @@unique([userId, prayerId])
 }
 
@@ -146,10 +130,8 @@ model FavoriteSaint {
   id      String @id @default(cuid())
   userId  String
   saintId String
-
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   saint Saint @relation(fields: [saintId], references: [id], onDelete: Cascade)
-
   @@unique([userId, saintId])
 }
 
@@ -157,28 +139,11 @@ model FavoriteOurLady {
   id        String @id @default(cuid())
   userId    String
   ourLadyId String
-
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   ourLady OurLady @relation(fields: [ourLadyId], references: [id], onDelete: Cascade)
-
   @@unique([userId, ourLadyId])
 }
 
-enum MilestoneType {
-  SACRAMENT
-  CONSECRATION
-  PERSONAL
-}
-
-enum MilestoneStatus {
-  IN_PROGRESS
-  COMPLETED
-  OVERDUE
-}
-
-enum GoalStatus {
-  IN_PROGRESS
-  COMPLETED
-  OVERDUE
-  CANCELED
-}
+enum MilestoneType { SACRAMENT CONSECRATION PERSONAL }
+enum MilestoneStatus { IN_PROGRESS COMPLETED OVERDUE }
+enum GoalStatus { IN_PROGRESS COMPLETED OVERDUE CANCELED }
