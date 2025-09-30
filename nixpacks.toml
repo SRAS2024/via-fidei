@@ -1,17 +1,5 @@
 [phases.setup]
-# Use an LTS Node
 nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = ["npm ci"]
-
-[phases.build]
-# Generate Prisma client, then build the CRA workspace
-cmds = [
-  "npm run postinstall",
-  "npm --workspace client run build"
-]
-
-[start]
-# Start the Express server which also serves the SPA in production
-cmd = "npm start"
