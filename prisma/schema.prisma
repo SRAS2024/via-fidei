@@ -1,5 +1,10 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js" 
+}
+datasource db { 
+  provider = "postgresql" 
+  url = env("DATABASE_URL") 
+}
 
 model User {
   id        String   @id @default(cuid())
@@ -144,6 +149,21 @@ model FavoriteOurLady {
   @@unique([userId, ourLadyId])
 }
 
-enum MilestoneType { SACRAMENT CONSECRATION PERSONAL }
-enum MilestoneStatus { IN_PROGRESS COMPLETED OVERDUE }
-enum GoalStatus { IN_PROGRESS COMPLETED OVERDUE CANCELED }
+enum MilestoneType {
+  SACRAMENT
+  CONSECRATION
+  PERSONAL
+}
+
+enum MilestoneStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum GoalStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELED
+}
