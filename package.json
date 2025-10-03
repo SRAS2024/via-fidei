@@ -3,15 +3,15 @@
   "private": true,
   "workspaces": ["server", "client"],
   "scripts": {
-    "postinstall": "prisma generate",
-    "prestart": "prisma migrate deploy",
+    "postinstall": "prisma generate --schema=prisma/schema.prisma",
+    "prestart": "prisma migrate deploy --schema=prisma/schema.prisma",
     "dev": "npm-run-all -p dev:server dev:client",
     "dev:server": "npm --workspace server run dev",
     "dev:client": "npm --workspace client run start",
     "build": "npm --workspace client run build",
     "start": "npm --workspace server run start",
     "migrate:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio",
+    "prisma:studio": "prisma studio --schema=prisma/schema.prisma",
     "format": "prettier --write ."
   },
   "devDependencies": {
@@ -22,6 +22,6 @@
   "dependencies": {
     "@prisma/client": "^5.18.0"
   },
-  "engines": { "node": ">=18.18" },
-  "packageManager": "npm@10"
+  "engines": { "node": ">=20.10.0" },
+  "packageManager": "npm@10.8.2"
 }
