@@ -1,4 +1,4 @@
-generator client {
+﻿generator client {
   provider = "prisma-client-js" 
 }
 datasource db { 
@@ -149,6 +149,21 @@ model FavoriteOurLady {
   @@unique([userId, ourLadyId])
 }
 
-enum MilestoneType { SACRAMENT CONSECRATION PERSONAL }
-enum MilestoneStatus { IN_PROGRESS COMPLETED OVERDUE }
-enum GoalStatus { IN_PROGRESS COMPLETED OVERDUE CANCELED }
+enum MilestoneType {
+  SACRAMENT
+  CONSECRATION
+  PERSONAL
+}
+
+enum MilestoneStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+enum GoalStatus {
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELED
+}
